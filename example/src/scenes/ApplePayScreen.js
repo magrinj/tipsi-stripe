@@ -14,14 +14,36 @@ export default class ApplePayScreen extends PureComponent {
     complete: true,
     status: null,
     token: null,
+    amexAvailable: false,
+    discoverAvailable: false,
+    masterCardAvailable: false,
+    visaAvailable: false,
   }
 
   async componentWillMount() {
     const allowed = await stripe.deviceSupportsApplePay()
-    this.setState({ allowed })
+    const amexAvailable = await stripe.canMakeApplePayPayments({
+      networks: ['american_express'],
+    })
+    const discoverAvailable = await stripe.canMakeApplePayPayments({
+      networks: ['discover'],
+    })
+    const masterCardAvailable = await stripe.canMakeApplePayPayments({
+      networks: ['master_card'],
+    })
+    const visaAvailable = await stripe.canMakeApplePayPayments({
+      networks: ['visa'],
+    })
+    this.setState({
+      allowed,
+      amexAvailable,
+      discoverAvailable,
+      masterCardAvailable,
+      visaAvailable,
+    })
   }
 
-  handleCompleteChange = (complete) => (
+  handleCompleteChange = complete => (
     this.setState({ complete })
   )
 
@@ -58,11 +80,11 @@ export default class ApplePayScreen extends PureComponent {
       if (this.state.complete) {
         await stripe.completeApplePayRequest()
         console.log('Apple Pay payment completed')
-        this.setState({ status: 'Apple Pay payment completed'})
+        this.setState({ status: 'Apple Pay payment completed' })
       } else {
         await stripe.cancelApplePayRequest()
         console.log('Apple Pay payment cenceled')
-        this.setState({ status: 'Apple Pay payment cenceled'})
+        this.setState({ status: 'Apple Pay payment cenceled' })
       }
     } catch (error) {
       console.log('Error:', error)
@@ -75,7 +97,17 @@ export default class ApplePayScreen extends PureComponent {
   )
 
   render() {
-    const { loading, allowed, complete, status, token } = this.state
+    const {
+      loading,
+      allowed,
+      complete,
+      status,
+      token,
+      amexAvailable,
+      discoverAvailable,
+      masterCardAvailable,
+      visaAvailable,
+    } = this.state
 
     return (
       <View style={styles.container}>
@@ -130,6 +162,33 @@ export default class ApplePayScreen extends PureComponent {
             ('Setup Pay' works only on real device)
           </Text>
         </View>
+        <View style={styles.statusContainer}>
+          <Text
+            style={styles.status}
+            {...testID('deviceSupportsApplePayStatus')}>
+            Device {allowed ? 'supports' : 'doesn\'t support' } Pay
+          </Text>
+          <Text
+            style={styles.status}
+            {...testID('americanExpressAvailabilityStatus')}>
+            American Express is {amexAvailable ? 'available' : 'not available'}
+          </Text>
+          <Text
+            style={styles.status}
+            {...testID('discoverAvailabilityStatus')}>
+            Discover is {discoverAvailable ? 'available' : 'not available'}
+          </Text>
+          <Text
+            style={styles.status}
+            {...testID('masterCardAvailabilityStatus')}>
+            Master Card is {masterCardAvailable ? 'available' : 'not available'}
+          </Text>
+          <Text
+            style={styles.status}
+            {...testID('visaAvailabilityStatus')}>
+            Visa is {visaAvailable ? 'available' : 'not available'}
+          </Text>
+        </View>
       </View>
     )
   }
@@ -160,6 +219,13 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  statusContainer: {
+    margin: 20,
+    alignSelf: 'stretch',
+  },
+  status: {
+    fontWeight: '300',
     color: 'gray',
   },
 })

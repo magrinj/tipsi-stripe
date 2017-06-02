@@ -10,6 +10,11 @@ test('Test if user can use Apple Pay', async (t) => {
   const payWithPasscodeButtonId = idFromAccessId('Pay with Passcode')
   const statusId = idFromAccessId('applePayStatus')
   const tokenId = idFromAccessId('applePayToken')
+  const deviceSupportsApplePayStatusId = idFromAccessId('deviceSupportsApplePayStatus')
+  const americanExpressAvailabilityStatusId = idFromAccessId('americanExpressAvailabilityStatus')
+  const discoverAvailabilityStatusId = idFromAccessId('discoverAvailabilityStatus')
+  const masterCardAvailabilityStatusId = idFromAccessId('masterCardAvailabilityStatus')
+  const visaAvailabilityStatusId = idFromAccessId('visaAvailabilityStatus')
   const setupApplePayButtonId = idFromAccessId('setupApplePayButton')
 
   await openTestSuite('Pay')
@@ -54,6 +59,46 @@ test('Test if user can use Apple Pay', async (t) => {
     await driver.waitForVisible(statusId).getText(statusId),
     'Apple Pay payment cenceled',
     'Apple Pay payment should be cenceled'
+  )
+
+  t.equal(
+    await driver
+    .waitForVisible(deviceSupportsApplePayStatusId)
+    .getText(deviceSupportsApplePayStatusId),
+    'Device supports Pay',
+    'Device should support Pay'
+  )
+
+  t.equal(
+    await driver
+    .waitForVisible(americanExpressAvailabilityStatusId)
+    .getText(americanExpressAvailabilityStatusId),
+    'American Express is available',
+    'American Express should be available'
+  )
+
+  t.equal(
+    await driver
+    .waitForVisible(discoverAvailabilityStatusId)
+    .getText(discoverAvailabilityStatusId),
+    'Discover is available',
+    'Discover should be available'
+  )
+
+  t.equal(
+    await driver
+    .waitForVisible(masterCardAvailabilityStatusId)
+    .getText(masterCardAvailabilityStatusId),
+    'Master Card is available',
+    'Master Card should be available'
+  )
+
+  t.equal(
+    await driver
+    .waitForVisible(visaAvailabilityStatusId)
+    .getText(visaAvailabilityStatusId),
+    'Visa is available',
+    'Visa should be available'
   )
 
   await driver.waitForVisible(setupApplePayButtonId, 30000)
