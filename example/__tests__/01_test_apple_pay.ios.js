@@ -71,7 +71,7 @@ test('Test if user can use Apple Pay', async (t) => {
   }
 
   for (const [id, title] of Object.entries(cards)) {
-    const text = await driver.getText(id)
+    const text = await driver.getText(idFromAccessId(id))
     t.equal(text, `${title} is available`, `${title} should be available`)
   }
 
