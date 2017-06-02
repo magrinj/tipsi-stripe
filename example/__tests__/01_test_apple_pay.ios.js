@@ -11,10 +11,6 @@ test('Test if user can use Apple Pay', async (t) => {
   const statusId = idFromAccessId('applePayStatus')
   const tokenId = idFromAccessId('applePayToken')
   const deviceSupportsApplePayStatusId = idFromAccessId('deviceSupportsApplePayStatus')
-  const americanExpressAvailabilityStatusId = idFromAccessId('americanExpressAvailabilityStatus')
-  const discoverAvailabilityStatusId = idFromAccessId('discoverAvailabilityStatus')
-  const masterCardAvailabilityStatusId = idFromAccessId('masterCardAvailabilityStatus')
-  const visaAvailabilityStatusId = idFromAccessId('visaAvailabilityStatus')
   const setupApplePayButtonId = idFromAccessId('setupApplePayButton')
 
   await openTestSuite('Pay')
@@ -35,7 +31,7 @@ test('Test if user can use Apple Pay', async (t) => {
   t.pass('User should see token')
 
   t.equal(
-    await driver.waitForVisible(statusId).getText(statusId),
+    await driver.getText(statusId),
     'Apple Pay payment completed',
     'Apple Pay payment should be completed'
   )
@@ -56,50 +52,28 @@ test('Test if user can use Apple Pay', async (t) => {
   t.pass('User should see token')
 
   t.equal(
-    await driver.waitForVisible(statusId).getText(statusId),
+    await driver.getText(statusId),
     'Apple Pay payment cenceled',
     'Apple Pay payment should be cenceled'
   )
 
   t.equal(
-    await driver
-    .waitForVisible(deviceSupportsApplePayStatusId)
-    .getText(deviceSupportsApplePayStatusId),
+    await driver.getText(deviceSupportsApplePayStatusId),
     'Device supports Pay',
     'Device should support Pay'
   )
 
-  t.equal(
-    await driver
-    .waitForVisible(americanExpressAvailabilityStatusId)
-    .getText(americanExpressAvailabilityStatusId),
-    'American Express is available',
-    'American Express should be available'
-  )
+  const cards = {
+    americanExpressAvailabilityStatus: 'American Express',
+    discoverAvailabilityStatus: 'Discover',
+    masterCardAvailabilityStatus: 'Master Card',
+    visaAvailabilityStatus: 'Visa',
+  }
 
-  t.equal(
-    await driver
-    .waitForVisible(discoverAvailabilityStatusId)
-    .getText(discoverAvailabilityStatusId),
-    'Discover is available',
-    'Discover should be available'
-  )
-
-  t.equal(
-    await driver
-    .waitForVisible(masterCardAvailabilityStatusId)
-    .getText(masterCardAvailabilityStatusId),
-    'Master Card is available',
-    'Master Card should be available'
-  )
-
-  t.equal(
-    await driver
-    .waitForVisible(visaAvailabilityStatusId)
-    .getText(visaAvailabilityStatusId),
-    'Visa is available',
-    'Visa should be available'
-  )
+  for (const [id, title] of Object.entries(cards)) {
+    const text = await driver.getText(id)
+    t.equal(text, `${title} is available`, `${title} should be available`)
+  }
 
   await driver.waitForVisible(setupApplePayButtonId, 30000)
   t.pass('User should see `Setup Pay` button')
