@@ -109,6 +109,13 @@ export default class ApplePayScreen extends PureComponent {
       visaAvailable,
     } = this.state
 
+    const cards = {
+      americanExpressAvailabilityStatus: { name: 'American Express', isAvailable: amexAvailable },
+      discoverAvailabilityStatus: { name: 'Discover', isAvailable: discoverAvailable },
+      masterCardAvailabilityStatus: { name: 'Master Card', isAvailable: masterCardAvailable },
+      visaAvailabilityStatus: { name: 'Visa', isAvailable: visaAvailable },
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.header}>
@@ -168,26 +175,11 @@ export default class ApplePayScreen extends PureComponent {
             {...testID('deviceSupportsApplePayStatus')}>
             Device {allowed ? 'supports' : 'doesn\'t support' } Pay
           </Text>
-          <Text
-            style={styles.status}
-            {...testID('americanExpressAvailabilityStatus')}>
-            American Express is {amexAvailable ? 'available' : 'not available'}
-          </Text>
-          <Text
-            style={styles.status}
-            {...testID('discoverAvailabilityStatus')}>
-            Discover is {discoverAvailable ? 'available' : 'not available'}
-          </Text>
-          <Text
-            style={styles.status}
-            {...testID('masterCardAvailabilityStatus')}>
-            Master Card is {masterCardAvailable ? 'available' : 'not available'}
-          </Text>
-          <Text
-            style={styles.status}
-            {...testID('visaAvailabilityStatus')}>
-            Visa is {visaAvailable ? 'available' : 'not available'}
-          </Text>
+          {Object.entries(cards).map(([id, { name, isAvailable }]) => (
+            <Text style={styles.status} key={id} {...testID(id)}>
+              {name} is {isAvailable ? 'available' : 'not available'}
+            </Text>
+          ))}
         </View>
       </View>
     )
