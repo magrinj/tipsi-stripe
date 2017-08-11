@@ -40,7 +40,7 @@ import com.stripe.android.exception.AuthenticationException;
 import com.stripe.android.model.BankAccount;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
-import com.stripe.android.net.StripeApiHandler;
+import com.stripe.android.BuildConfig;
 import com.stripe.android.net.TokenParser;
 
 import org.json.JSONException;
@@ -125,11 +125,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void init(ReadableMap options) {
     publicKey = options.getString("publishableKey");
-    try {
-      stripe = new Stripe(publicKey);
-    } catch (AuthenticationException e) {
-      Log.e(TAG, "init: ", e);
-    }
+    stripe = new Stripe(this.getReactApplicationContext(), publicKey);
   }
 
   @ReactMethod
@@ -294,7 +290,7 @@ public class StripeModule extends ReactContextBaseJavaModule {
         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.PAYMENT_GATEWAY)
         .addParameter("gateway", "stripe")
         .addParameter("stripe:publishableKey", publicKey)
-        .addParameter("stripe:version", StripeApiHandler.VERSION)
+        .addParameter("stripe:version", BuildConfig.VERSION_NAME)
         .build())
       // You want the shipping address:
       .setShippingAddressRequired(true)
@@ -416,7 +412,8 @@ public class StripeModule extends ReactContextBaseJavaModule {
       exist(cardData, "fingerprint"),
       exist(cardData, "funding"),
       exist(cardData, "country"),
-      exist(cardData, "currency")
+      exist(cardData, "currency"),
+      exist(cardData, "id")
     );
   }
 

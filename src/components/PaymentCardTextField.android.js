@@ -43,7 +43,7 @@ export default class PaymentCardTextField extends Component {
     number: '',
     expMonth: 0,
     expYear: 0,
-    cvc: '',
+    cvc: 0,
   }
 
   componentWillUnmount() {
@@ -99,9 +99,9 @@ export default class PaymentCardTextField extends Component {
       color,
       ...fieldStyles
     } = StyleSheet.flatten(style)
-    const cardNumber = card.number || null
-    const expDate = card.expMonth || card.expYear ? `${card.expMonth}/${card.expYear}` : null
-    const securityCode = card.cvc || null
+    const cardNumber = card.number || ''
+    const expiryDate = `${card.expMonth || ''}/${card.expYear || ''}`;
+    const cvc = card.cvc || null
 
     return (
       <TouchableWithoutFeedback
@@ -123,8 +123,8 @@ export default class PaymentCardTextField extends Component {
           fontSize={fontSize}
           enabled={!disabled}
           cardNumber={cardNumber}
-          expDate={expDate}
-          securityCode={securityCode}
+          expiryDate={expiryDate}
+          cvcCode={cvc}
           {...rest}
           onChange={this.handleChange}
         />
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
 })
 
-const NativePaymentCardTextField = requireNativeComponent('CreditCardForm', PaymentCardTextField, {
+const NativePaymentCardTextField = requireNativeComponent('CardInputWidget', PaymentCardTextField, {
   nativeOnly: {
     borderColor: true,
     borderWidth: true,
@@ -156,8 +156,8 @@ const NativePaymentCardTextField = requireNativeComponent('CreditCardForm', Paym
     fontSize: true,
     enabled: true,
     cardNumber: true,
-    expDate: true,
-    securityCode: true,
+    expiryDate: true,
+    cvcCode: true,
     onChange: true,
   },
 })

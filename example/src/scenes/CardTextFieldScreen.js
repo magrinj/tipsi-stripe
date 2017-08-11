@@ -46,6 +46,8 @@ export default class CardTextFieldScreen extends PureComponent {
           <PaymentCardTextField
             accessible={false}
             style={styles.field}
+            numberPlaceholder="TOTO"
+            card={{       number: '4000000000000341' }}
             onParamsChange={this.handleFieldParamsChange}
             {...testID('cardTextField')}
           />

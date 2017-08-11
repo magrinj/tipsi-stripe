@@ -5,9 +5,12 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Xml;
-import android.widget.EditText;
 
-import com.devmarvel.creditcardentry.library.CreditCardForm;
+import com.stripe.android.view.CardInputWidget;
+import com.stripe.android.view.CardNumberEditText;
+import com.stripe.android.view.ExpiryDateEditText;
+import com.stripe.android.view.StripeEditText;
+import com.stripe.android.model.Card;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.SimpleViewManager;
@@ -21,9 +24,9 @@ import org.xmlpull.v1.XmlPullParser;
  * Created by dmitriy on 11/15/16
  */
 
-public class CustomCardInputReactManager extends SimpleViewManager<CreditCardForm> {
+public class CustomCardInputReactManager extends SimpleViewManager<CardInputWidget> {
 
-  public static final String REACT_CLASS = "CreditCardForm";
+  public static final String REACT_CLASS = "CardInputWidget";
   private static final String TAG = CustomCardInputReactManager.class.getSimpleName();
   private static final String NUMBER = "number";
   private static final String EXP_MONTH = "expMonth";
@@ -33,6 +36,7 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
   private ThemedReactContext reactContext;
   private WritableMap currentParams;
 
+  private String EXP_DATE_SEPARATOR = "/";
   private String currentNumber;
   private int currentMonth;
   private int currentYear;
@@ -44,8 +48,8 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
   }
 
   @Override
-  protected CreditCardForm createViewInstance(ThemedReactContext reactContext) {
-    XmlPullParser parser = reactContext.getResources().getXml(R.xml.stub_material);
+  protected CardInputWidget createViewInstance(ThemedReactContext reactContext) {
+    XmlPullParser parser = reactContext.getResources().getXml(R.xml.stripe_card_widget);
     try {
       parser.next();
       parser.nextTag();
@@ -54,59 +58,74 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
     }
 
     AttributeSet attr = Xml.asAttributeSet(parser);
-    final CreditCardForm creditCardForm = new CreditCardForm(reactContext, attr);
+    final CardInputWidget creditCardForm = new CardInputWidget(reactContext, attr);
     setListeners(creditCardForm);
     this.reactContext = reactContext;
     return creditCardForm;
   }
 
   @ReactProp(name = "enabled")
-  public void setEnabled(CreditCardForm view, boolean enabled) {
+  public void setEnabled(CardInputWidget view, boolean enabled) {
     view.setEnabled(enabled);
   }
 
   @ReactProp(name = "backgroundColor")
-  public void setBackgroundColor(CreditCardForm view, int color) {
+  public void setBackgroundColor(CardInputWidget view, int color) {
     Log.d("TAG", "setBackgroundColor: "+color);
     view.setBackgroundColor(color);
   }
 
   @ReactProp(name = "cardNumber")
-  public void setCardNumber(CreditCardForm view, String cardNumber) {
-    view.setCardNumber(cardNumber, true);
+  public void setCardNumber(CardInputWidget view, String cardNumber) {
+    view.setCardNumber(cardNumber);
   }
 
-  @ReactProp(name = "expDate")
-  public void setExpDate(CreditCardForm view, String expDate) {
-    view.setExpDate(expDate, true);
+  @ReactProp(name = "expiryDate")
+  public void setExpDate(CardInputWidget view, String expiryDate) {
+    String[] parts = expiryDate.split(EXP_DATE_SEPARATOR);
+
+    if (parts.length  == 2) {
+      try {
+        int month = Integer.parseInt(parts[0]);
+        int year = Integer.parseInt(parts[1]);
+
+        view.setExpiryDate(month, year);
+      } catch (NumberFormatException e) {
+      }
+    }
   }
 
-  @ReactProp(name = "securityCode")
-  public void setSecurityCode(CreditCardForm view, String securityCode) {
-    view.setSecurityCode(securityCode, true);
+  @ReactProp(name = "cvcCode")
+  public void setCvcCode(CardInputWidget view, String cvcCode) {
+    view.setCvcCode(cvcCode);
   }
 
   @ReactProp(name = "numberPlaceholder")
-  public void setCreditCardTextHint(CreditCardForm view, String creditCardTextHint) {
-    view.setCreditCardTextHint(creditCardTextHint);
+  public void setCreditCardTextHint(CardInputWidget view, String creditCardTextHint) {
+    final CardNumberEditText ccNumberEdit = (CardNumberEditText) view.findViewById(R.id.et_card_number);
+
+    ccNumberEdit.setHint(creditCardTextHint);
   }
 
   @ReactProp(name = "expirationPlaceholder")
-  public void setExpDateTextHint(CreditCardForm view, String expDateTextHint) {
-    view.setExpDateTextHint(expDateTextHint);
+  public void setExpDateTextHint(CardInputWidget view, String expDateTextHint) {
+    final ExpiryDateEditText ccExpEdit = (ExpiryDateEditText) view.findViewById(R.id.et_expiry_date);
+
+    ccExpEdit.setHint(expDateTextHint);
   }
 
   @ReactProp(name = "cvcPlaceholder")
-  public void setSecurityCodeTextHint(CreditCardForm view, String securityCodeTextHint) {
-    view.setSecurityCodeTextHint(securityCodeTextHint);
+  public void setSecurityCodeTextHint(CardInputWidget view, String securityCodeTextHint) {
+    final StripeEditText ccCcvEdit = (StripeEditText) view.findViewById(R.id.et_cvc_number);
+
+    ccCcvEdit.setHint(securityCodeTextHint);
   }
 
+  private void setListeners(final CardInputWidget view){
 
-  private void setListeners(final CreditCardForm view){
-
-    final EditText ccNumberEdit = (EditText) view.findViewById(R.id.cc_card);
-    final EditText ccExpEdit = (EditText) view.findViewById(R.id.cc_exp);
-    final EditText ccCcvEdit = (EditText) view.findViewById(R.id.cc_ccv);
+    final CardNumberEditText ccNumberEdit = (CardNumberEditText) view.findViewById(R.id.et_card_number);
+    final ExpiryDateEditText ccExpEdit = (ExpiryDateEditText) view.findViewById(R.id.et_expiry_date);
+    final StripeEditText ccCcvEdit = (StripeEditText) view.findViewById(R.id.et_cvc_number);
 
     ccNumberEdit.addTextChangedListener(new TextWatcher() {
       @Override
@@ -132,19 +151,23 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
 
       @Override
       public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        String expDate = charSequence.toString();
+        String[] parts = expDate.split(EXP_DATE_SEPARATOR);
+
         Log.d(TAG, "onTextChanged: EXP_YEAR = "+charSequence);
+
         try {
-          currentMonth = view.getCreditCard().getExpMonth();
-        }catch (Exception e){
-          if(charSequence.length() == 0)
-            currentMonth = 0;
+          if (parts.length > 0) {
+            currentMonth = Integer.parseInt(parts[0]);
+          }
+
+          if (parts.length > 1) {
+            currentYear = Integer.parseInt(parts[1]);
+          }
+
+          postEvent(view);
+        } catch (NumberFormatException e) {
         }
-        try {
-          currentYear = view.getCreditCard().getExpYear();
-        }catch (Exception e){
-          currentYear = 0;
-        }
-        postEvent(view);
       }
 
       @Override
@@ -170,7 +193,10 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
     });
   }
 
-  private void postEvent(CreditCardForm view){
+  private void postEvent(CardInputWidget view){
+    Card card = view.getCard();
+    boolean isValidCard = (card != null ? card.validateCard() : false);
+
     currentParams = Arguments.createMap();
     currentParams.putString(NUMBER, currentNumber);
     currentParams.putInt(EXP_MONTH, currentMonth);
@@ -178,10 +204,10 @@ public class CustomCardInputReactManager extends SimpleViewManager<CreditCardFor
     currentParams.putString(CCV, currentCCV);
     reactContext.getNativeModule(UIManagerModule.class)
       .getEventDispatcher().dispatchEvent(
-      new CreditCardFormOnChangeEvent(view.getId(), currentParams, view.isCreditCardValid()));
+      new CreditCardFormOnChangeEvent(view.getId(), currentParams, isValidCard));
   }
 
-  private void updateView(CreditCardForm view){
+  private void updateView(CardInputWidget view){
 
   }
 }

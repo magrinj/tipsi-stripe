@@ -169,7 +169,7 @@ public class AddCardDialogFragment extends DialogFragment {
 
     String errorMessage = Utils.validateCard(card);
     if (errorMessage == null) {
-      new Stripe().createToken(
+      new Stripe(this.getContext()).createToken(
         card,
         PUBLISHABLE_KEY,
         new TokenCallback() {
